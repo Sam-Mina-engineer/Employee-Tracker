@@ -1,7 +1,7 @@
 {
   "name": "employee-tracker",
   "version": "1.0.0",
-  "description": "View and manage departments, roles, and employees in your business!git ",
+  "description": "View and manage departments, roles, and employees in your business!",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
