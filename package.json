@@ -1,0 +1,17 @@
+{
+  "name": "employee-tracker",
+  "version": "1.0.0",
+  "description": "View and manage departments, roles, and employees in your business!git ",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Your Name",
+  "license": "None",
+  "dependencies": {
+    "inquirer": "^8.2.4",
+    "pg": "^8.7.1",
+    "console.table": "^0.10.0",
+    "dotenv": "^16.0.3"
+  }
+}
