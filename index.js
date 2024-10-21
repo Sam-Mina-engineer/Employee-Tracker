@@ -5,6 +5,9 @@ const cTable = require('console.table'); // For displaying results in a table fo
 // Main menu prompt
 
 const mainMenu = async () => {
+
+    // Prompt the user with the main menu options
+
     const { action } = await inquirer.prompt({
         name: 'action',
         type: 'list',
@@ -17,9 +20,18 @@ const mainMenu = async () => {
             'Add Role',
             'Add Employee',
             'Update Employee Role',
+            'Update Employee Manager',
+            'View Employees by Manager',
+            'View Employees by Department',
+            'Delete Department',
+            'Delete Role',
+            'Delete Employee',
+            'View Total Utilized Budget of Department',
             'Exit'
         ]
     });
+
+    // Perform action based on user selection
 
     switch (action) {
         case 'View All Departments':
@@ -43,11 +55,34 @@ const mainMenu = async () => {
         case 'Update Employee Role':
             await updateEmployeeRole();
             break;
+        case 'Update Employee Manager':
+            await updateEmployeeManager();
+            break;
+        case 'View Employees by Manager':
+            await viewEmployeesByManager();
+            break;
+        case 'View Employees by Department':
+            await viewEmployeesByDepartment();
+            break;
+        case 'Delete Department':
+            await deleteDepartment();
+            break;
+        case 'Delete Role':
+            await deleteRole();
+            break;
+        case 'Delete Employee':
+            await deleteEmployee();
+            break;
+        case 'View Total Utilized Budget of Department':
+            await viewDepartmentBudget();
+            break;
         case 'Exit':
             process.exit();  // Exit the application
     }
 
-    mainMenu();  // Show the main menu again after performing an action
+    // Show the main menu again after performing an action
+    
+    mainMenu();
 };
 
 // Function to view all departments
@@ -92,7 +127,7 @@ const viewEmployees = async () => {
             FROM employee 
             JOIN roles ON employee.role_id = roles.id 
             JOIN department ON roles.department_id = department.id 
-            JOIN employee manager ON employee.manager_id = manager.id
+            LEFT JOIN employee manager ON employee.manager_id = manager.id
         `);
         console.table(result.rows);
     } catch (err) {
@@ -207,6 +242,146 @@ const updateEmployeeRole = async () => {
         console.log(`Updated employee ID ${employee_id} to role ID ${role_id}`);
     } catch (err) {
         console.error('Error updating employee role:', err);
+    }
+};
+
+// Function to update an employee's manager
+
+const updateEmployeeManager = async () => {
+    try {
+        const { employee_id, manager_id } = await inquirer.prompt([
+            {
+                name: 'employee_id',
+                type: 'input',
+                message: 'Enter the employee ID to update:'
+            },
+            {
+                name: 'manager_id',
+                type: 'input',
+                message: 'Enter the new manager ID for the employee (leave blank if none):',
+                default: null
+            }
+        ]);
+        await db.query(
+            'UPDATE employee SET manager_id = $1 WHERE id = $2',
+            [manager_id, employee_id]
+        );
+        console.log(`Updated employee ID ${employee_id} with manager ID ${manager_id}`);
+    } catch (err) {
+        console.error('Error updating employee manager:', err);
+    }
+};
+
+// Function to view employees by manager
+
+const viewEmployeesByManager = async () => {
+    try {
+        const { manager_id } = await inquirer.prompt({
+            name: 'manager_id',
+            type: 'input',
+            message: 'Enter the manager ID to view their employees:'
+        });
+        const result = await db.query(
+            `SELECT * FROM employee WHERE manager_id = $1`,
+            [manager_id]
+        );
+        console.table(result.rows);
+    } catch (err) {
+        console.error('Error viewing employees by manager:', err);
+    }
+};
+
+// Function to view employees by department
+
+const viewEmployeesByDepartment = async () => {
+    try {
+        const { department_id } = await inquirer.prompt({
+            name: 'department_id',
+            type: 'input',
+            message: 'Enter the department ID to view its employees:'
+        });
+        const result = await db.query(
+            `SELECT employee.id, employee.first_name, employee.last_name, roles.title AS role
+            FROM employee 
+            JOIN roles ON employee.role_id = roles.id
+            WHERE roles.department_id = $1`,
+            [department_id]
+        );
+        console.table(result.rows);
+    } catch (err) {
+        console.error('Error viewing employees by department:', err);
+    }
+};
+
+// Function to delete a department
+
+const deleteDepartment = async () => {
+    try {
+        const { department_id } = await inquirer.prompt({
+            name: 'department_id',
+            type: 'input',
+            message: 'Enter the department ID to delete:'
+        });
+        await db.query('DELETE FROM department WHERE id = $1', [department_id]);
+        console.log(`Deleted department with ID ${department_id}`);
+    } catch (err) {
+        console.error('Error deleting department:', err);
+    }
+};
+
+// Function to delete a role
+
+const deleteRole = async () => {
+    try {
+        const { role_id } = await inquirer.prompt({
+            name: 'role_id',
+            type: 'input',
+            message: 'Enter the role ID to delete:'
+        });
+        await db.query('DELETE FROM roles WHERE id = $1', [role_id]);
+        console.log(`Deleted role with ID ${role_id}`);
+    } catch (err) {
+        console.error('Error deleting role:', err);
+    }
+};
+
+// Function to delete an employee
+
+const deleteEmployee = async () => {
+    try {
+        const { employee_id } = await inquirer.prompt({
+            name: 'employee_id',
+            type: 'input',
+            message: 'Enter the employee ID to delete:'
+        });
+        await db.query('DELETE FROM employee WHERE id = $1', [employee_id]);
+        console.log(`Deleted employee with ID ${employee_id}`);
+    } catch (err) {
+        console.error('Error deleting employee:', err);
+    }
+};
+
+// Function to view the total utilized budget of a department
+
+const viewDepartmentBudget = async () => {
+    try {
+        const { department_id } = await inquirer.prompt({
+            name: 'department_id',
+            type: 'input',
+            message: 'Enter the department ID to view its total utilized budget:'
+        });
+        const result = await db.query(
+            `SELECT department.name AS department, SUM(roles.salary) AS total_budget
+            FROM employee
+            JOIN roles ON employee.role_id = roles.id
+            JOIN department ON roles.department_id = department.id
+            WHERE department.id = $1
+            GROUP BY department.name`,
+            [department_id]
+        );
+        console.table(result.rows);
+    } catch (err) {
+        console.error('Error viewing department budget:', err);
     }
 };
 
