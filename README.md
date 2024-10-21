@@ -22,8 +22,8 @@ An employee tracking app built with PostgrSQL and Node.js.
 ## License
 This project is licensed under the None license.
 
-## Contributing
-Designed and built by Sam Mina.
+## YouTube Link
+(https://www.youtube.com/watch?v=qH93aoWzH_o)
 
 ## Tests
 Run Postgres on local machine, run the schema and populate with seed data. 
